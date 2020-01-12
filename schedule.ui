@@ -6,18 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>779</width>
-    <height>577</height>
+    <width>1020</width>
+    <height>762</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="addToSchedule">
    <property name="geometry">
     <rect>
-     <x>640</x>
-     <y>530</y>
+     <x>880</x>
+     <y>720</y>
      <width>101</width>
      <height>23</height>
     </rect>
@@ -26,7 +26,7 @@
     <string>Add to Schedule</string>
    </property>
   </widget>
-  <widget class="QDateEdit" name="dateEdit">
+  <widget class="QDateEdit" name="scheduleDateEdit">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -35,8 +35,21 @@
      <height>22</height>
     </rect>
    </property>
+   <property name="dateTime">
+    <datetime>
+     <hour>0</hour>
+     <minute>0</minute>
+     <second>0</second>
+     <year>2020</year>
+     <month>1</month>
+     <day>1</day>
+    </datetime>
+   </property>
+   <property name="calendarPopup">
+    <bool>true</bool>
+   </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QPushButton" name="scheduleSearch">
    <property name="geometry">
     <rect>
      <x>140</x>
@@ -48,6 +61,61 @@
    <property name="text">
     <string>Search</string>
    </property>
+  </widget>
+  <widget class="QWidget" name="mapWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>60</y>
+     <width>661</width>
+     <height>391</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QTableWidget" name="availableSats">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>480</y>
+     <width>961</width>
+     <height>221</height>
+    </rect>
+   </property>
+   <column>
+    <property name="text">
+     <string>Type</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Status</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Mode</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Uplink</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Downlink</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>AOS</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>LOS</string>
+    </property>
+   </column>
   </widget>
  </widget>
  <resources/>

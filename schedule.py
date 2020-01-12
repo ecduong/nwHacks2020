@@ -9,6 +9,18 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 		QtWidgets.QMainWindow.__init__(self)
 		Ui_MainWindow.__init__(self)
 		self.setupUi(self)
+		self.scheduleSearch.clicked.connect(self.getAvailableSats)
+
+	def getAvailableSats(self):
+		date = self.scheduleDateEdit.date().toPyDate()
+		# Call Andrew's script
+		# Call populateTable when adding script to retrieve data
+
+	def populateTable(self, data):
+		self.availableSats.setRowCount(10)
+		for row in range(10):
+			for column in range(7):
+				self.availableSats.setItem(row, column, QtWidgets.QTableWidgetItem(data[row][column]))
 
 if __name__ == "__main__":
 	app = QtWidgets.QApplication(sys.argv)
