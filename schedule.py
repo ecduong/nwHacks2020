@@ -1,5 +1,8 @@
 import sys
+import base64
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel
+from PyQt5.QtGui import QIcon, QPixmap
 
 #modules for data gathering and processing
 import os
@@ -28,8 +31,19 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
-        self.setupUi(self)
         self.pushButton_2.clicked.connect(self.getParams)
+        
+        pixmap = QPixmap("earth.jpg")
+        pixmap = pixmap.scaled(650, 400, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+        self.label = QLabel(self)
+        self.label.setPixmap(pixmap)
+        # Dimensions are probably not correct 
+        self.label.setGeometry(20, 40, 650, 400)
+
+        self.setupUi(self)
+
+        self.scheduleSearch.clicked.connect(self.getAvailableSats)
+
 
     def getAvailableSats(self):
         date = self.scheduleDateEdit.date().toPyDate()
