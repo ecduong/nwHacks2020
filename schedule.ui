@@ -11,7 +11,10 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>RREarthStation</string>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
   </property>
   <widget class="QPushButton" name="addToSchedule">
    <property name="geometry">
@@ -60,16 +63,6 @@
    </property>
    <property name="text">
     <string>Search</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="mapWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>60</y>
-     <width>661</width>
-     <height>391</height>
-    </rect>
    </property>
   </widget>
   <widget class="QTableWidget" name="availableSats">
