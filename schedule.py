@@ -32,16 +32,17 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
+        QtWidgets.QTabWidget.__init__(self)
         Ui_MainWindow.__init__(self)
         
+
+        self.setupUi(self)
         pixmap = QPixmap("earth.jpg")
         pixmap = pixmap.scaled(650, 400, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
         self.label = QLabel(self)
         self.label.setPixmap(pixmap)
         # Dimensions are probably not correct 
         self.label.setGeometry(20, 40, 650, 400)
-
-        self.setupUi(self)
 
         self.scheduleSearch.clicked.connect(self.getParams)
         #self.scheduleSearch.clicked.connect(self.getAvailableSats)
@@ -53,11 +54,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # Call populateTable when adding script to retrieve data
 
     def populateTable(self, data):
+        print("calling populateTable")
+        self.availableSats.clearContents()
         self.availableSats.setRowCount(len(data))
-        for row in data:
-            print(row)
-            for column in row:
-                print(column)
+        for row in range(0, len(data)):
+            for column in range(0, len(data[row])):
                 self.availableSats.setItem(row, column, QtWidgets.QTableWidgetItem(data[row][column]))
 
     def setup(self):
@@ -73,8 +74,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         print("Updating list of compatible satellites from remote gr-satellites repository")
         if not os.path.exists(gr_sat_dir):
             Repo.clone_from('https://github.com/daniestevez/gr-satellites', gr_sat_dir)
-        #else:
-        #    git.cmd.Git(gr_sat_dir).pull()
+        else:
+            git.cmd.Git(gr_sat_dir).pull()
         
         sat_data = {}
 
@@ -167,6 +168,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         #if not lng:
         lng = '-123.2460 E'
 
+        #TODO: Convert this input (provided in PST) to UTC before passing to the ts.utc function below
         dateStart = self.scheduleDateEditStart.dateTime().toPyDateTime()
         dateEnd = self.scheduleDateEditEnd.dateTime().toPyDateTime()
         #mins = (dateEnd-dateStart).total_seconds()/60
@@ -177,14 +179,6 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         hour = int(dateStart.hour)
         minutes = range(int((dateEnd-dateStart).total_seconds()/60))
 
-        print(year)
-        print(month)
-        print(day)
-        print(hour)
-        print(minutes)
-        print(lat)
-        print(lng)
-        
         #minutes = range(60 * 12) #12 hours
         ts = api.load.timescale()
         #t = ts.utc(2019, 11, 19, 23, minutes)
@@ -222,21 +216,29 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
        
         name_to_pass_map = {}
+        self.upcoming_passes = []
         for p in passes:
             name_to_pass_map[p.name] = p
-            print(p)
             if len(passes[p]) > 1:
                 for i in range(0, len(passes[p])):
-                    entry = {}
-                    entry['name'] = p.name
-                    entry['aos'] = t[passes[p][i][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + 'PST'
-                    entry['los'] = t[passes[p][i][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + 'PST'
+                    entry = [] 
+                    entry.append(p.name)
+                    entry.append('temp_status')
+                    entry.append('temp_mode')
+                    entry.append('temp_uplink')
+                    entry.append('temp_downlink')
+                    entry.append(t[passes[p][i][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + ' PST')
+                    entry.append(t[passes[p][i][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + ' PST')
                     self.upcoming_passes.append(entry)
             else:
-                entry = {}
-                entry['name'] = p.name
-                entry['aos'] = t[passes[p][0][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + 'PST'
-                entry['los'] = t[passes[p][0][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + 'PST'
+                entry = []
+                entry.append(p.name)
+                entry.append('temp_status')
+                entry.append('temp_mode')
+                entry.append('temp_uplink')
+                entry.append('temp_downlink')
+                entry.append(t[passes[p][0][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + ' PST')
+                entry.append(t[passes[p][0][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + ' PST')
                 self.upcoming_passes.append(entry)
 
 
