@@ -3,3 +3,6 @@ Collaborators: Eric Duong, Andrew Law
 
 # About
 This is an exploratory design that may be considered for our UBC Engineering capstone project.
+
+# Python Dependencies
+* PyYAML

@@ -28,10 +28,11 @@ Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 
 class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
+    upcoming_passes = []
+
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
-        self.pushButton_2.clicked.connect(self.getParams)
         
         pixmap = QPixmap("earth.jpg")
         pixmap = pixmap.scaled(650, 400, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
@@ -42,7 +43,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.setupUi(self)
 
-        self.scheduleSearch.clicked.connect(self.getAvailableSats)
+        self.scheduleSearch.clicked.connect(self.getParams)
+        #self.scheduleSearch.clicked.connect(self.getAvailableSats)
 
 
     def getAvailableSats(self):
@@ -52,8 +54,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def populateTable(self, data):
         self.availableSats.setRowCount(len(data))
-        for row in range(len(data)):
-            for column in range(7):
+        for row in data:
+            print(row)
+            for column in row:
+                print(column)
                 self.availableSats.setItem(row, column, QtWidgets.QTableWidgetItem(data[row][column]))
 
     def setup(self):
@@ -69,8 +73,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         print("Updating list of compatible satellites from remote gr-satellites repository")
         if not os.path.exists(gr_sat_dir):
             Repo.clone_from('https://github.com/daniestevez/gr-satellites', gr_sat_dir)
-        else:
-            git.cmd.Git(gr_sat_dir).pull()
+        #else:
+        #    git.cmd.Git(gr_sat_dir).pull()
         
         sat_data = {}
 
@@ -137,7 +141,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 sat_data[norad_id][trans_name]['downlink_low'] = transmitter['downlink_low']
             
         #JSON object containing satellite data (norad ID is key, name and downlink freqs are other fields)        
-        json_sat_data = json.dumps(sat_data, indent=4, sort_keys=True)
+        #json_sat_data = json.dumps(sat_data, indent=4, sort_keys=True)
 
         sats = api.load.tle('https://celestrak.com/NORAD/elements/amateur.txt')
         #This object can be dereferenced by sat name or norad ID
@@ -220,35 +224,51 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         name_to_pass_map = {}
         for p in passes:
             name_to_pass_map[p.name] = p
-
-        for p in passes:
-            print('------------ ' + p.name + ' ------------')
+            print(p)
             if len(passes[p]) > 1:
                 for i in range(0, len(passes[p])):
-                    print(str(i) + ')\tRises:\t', t[passes[p][i][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST')
-                    print('\tSets:\t', t[passes[p][i][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST')
-                    print('\n')
+                    entry = {}
+                    entry['name'] = p.name
+                    entry['aos'] = t[passes[p][i][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + 'PST'
+                    entry['los'] = t[passes[p][i][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + 'PST'
+                    self.upcoming_passes.append(entry)
             else:
-                print('0)\tRises:\t', t[passes[p][0][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST')
-                print('\tsets:\t', t[passes[p][0][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST')
-                print('\n')
+                entry = {}
+                entry['name'] = p.name
+                entry['aos'] = t[passes[p][0][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + 'PST'
+                entry['los'] = t[passes[p][0][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S') + 'PST'
+                self.upcoming_passes.append(entry)
 
-        if not passes:
-            print('No satellite passes overhead during that time')
-            sys.exit()
 
-        sched_sat = input('Enter the name of the satellite you would like to schedule for autonomous communication: ')
-        pass_num = int(input('Enter the pass number you would like to schedule: '))
+        self.populateTable(self.upcoming_passes)
+      #  for p in passes:
+      #      print('------------ ' + p.name + ' ------------')
+      #      if len(passes[p]) > 1:
+      #          for i in range(0, len(passes[p])):
+      #              print(str(i) + ')\tRises:\t', t[passes[p][i][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST')
+      #              print('\tSets:\t', t[passes[p][i][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST')
+      #              print('\n')
+      #      else:
+      #          print('0)\tRises:\t', t[passes[p][0][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST')
+      #          print('\tsets:\t', t[passes[p][0][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST')
+      #          print('\n')
 
-        if not sched_sat and not pass_num:
-            print('No passes scheduled')
-            sys.exit()
+      #  if not passes:
+      #      print('No satellite passes overhead during that time')
+      #      sys.exit()
 
-        pass_sched = passes[name_to_pass_map[sched_sat]]
+      #  sched_sat = input('Enter the name of the satellite you would like to schedule for autonomous communication: ')
+      #  pass_num = int(input('Enter the pass number you would like to schedule: '))
 
-        print('\nData will automatically be collected from', sched_sat, 'during the pass from:')
-        print(t[pass_sched[pass_num][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST to', t[pass_sched[pass_num][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST')
-        print('\n')
+      #  if not sched_sat and not pass_num:
+      #      print('No passes scheduled')
+      #      sys.exit()
+
+      #  pass_sched = passes[name_to_pass_map[sched_sat]]
+
+      #  print('\nData will automatically be collected from', sched_sat, 'during the pass from:')
+      #  print(t[pass_sched[pass_num][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST to', t[pass_sched[pass_num][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST')
+      #  print('\n')
 
 
 if __name__ == "__main__":

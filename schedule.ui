@@ -75,7 +75,7 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QPushButton" name="scheduleSearch">
    <property name="geometry">
     <rect>
      <x>200</x>
