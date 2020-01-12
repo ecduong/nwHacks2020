@@ -17,8 +17,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 		# Call populateTable when adding script to retrieve data
 
 	def populateTable(self, data):
-		self.availableSats.setRowCount(10)
-		for row in range(10):
+		self.availableSats.setRowCount(data.)
+		for row in range(len(data)):
 			for column in range(7):
 				self.availableSats.setItem(row, column, QtWidgets.QTableWidgetItem(data[row][column]))
 
