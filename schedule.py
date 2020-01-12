@@ -1,6 +1,6 @@
 import sys
 import base64
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, QtLocation, uic
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel
 from PyQt5.QtGui import QIcon, QPixmap
 
@@ -14,6 +14,7 @@ import yaml
 import xml.etree.ElementTree as ET
 from os.path import expanduser
 from git import Repo
+from pathlib import Path
 
 #orbit prediction modules
 from numpy import diff
@@ -26,9 +27,19 @@ qtCreatorFile = "schedule.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 
-
 class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     upcoming_passes = []
+
+    home = expanduser("~")
+    earth_station_path = home + '/Desktop/nwHacks2020/earthstation/'
+    gr_sat_dir = earth_station_path + 'gr-satellites/'
+    satnogs_filename = "satnogs_transmitters.json"
+    path_to_satnogs_filename = Path(earth_station_path + satnogs_filename)
+    apps_dir = Path(gr_sat_dir + 'apps/')
+    gr_sat_dir = Path(gr_sat_dir)
+    earth_station_path = Path(earth_station_path) 
+    
+    
 
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
@@ -41,6 +52,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # Dimensions are probably not correct 
         self.label.setGeometry(20, 40, 650, 400)
 
+        #html = open("map.html", "r").read()
+        #self.browser.page().runJavaScript("loadMap()", self.ready)
         self.setupUi(self)
 
         self.scheduleSearch.clicked.connect(self.getParams)
@@ -60,25 +73,47 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 print(column)
                 self.availableSats.setItem(row, column, QtWidgets.QTableWidgetItem(data[row][column]))
 
+    def pullFromServer(self):
+        #Check if file exists, if not, pull from server
+        satnogs_url = 'http://db.satnogs.org/'
+       
+        if os.path.exists(self.path_to_satnogs_filename):
+            return
+
+        #Note becareful not to spam these requests to prevent IP from getting blocked
+        satnogs_sats_json = requests.get(satnogs_url + 'api/satellites/?format=json')
+        if satnogs_sats_json.status_code != 200:
+            print('Failed to retrieve satellite data from SatNOGS DB')
+            sys.exit()
+       
+        satnogs_transmitters_json = requests.get(satnogs_url + 'api/transmitters/?format=json')
+        if satnogs_transmitters_json.status_code != 200:
+            print('Failed to retrieve transmitter data from SatNOGS DB')
+            sys.exit()
+
+        print(satnogs_transmitters_json.content)
+
+        print(satnogs_transmitters_json.text)
+        with open(self.path_to_satnogs_filename, "w") as outfile:
+            outfile.write(satnogs_transmitters_json.text)
+            outfile.close()
+
     def setup(self):
         #Create directory to host system documents
-        home = expanduser("~")
-        earth_station_path = home + '/earthstation/'
-        gr_sat_dir = earth_station_path + 'gr-satellites/' 
-        if not os.path.exists(earth_station_path):
-            os.mkdir(earth_station_path)
+        if not os.path.exists(self.earth_station_path):
+            os.mkdir(self.earth_station_path)
 
         gr_sat_list = []
        
         print("Updating list of compatible satellites from remote gr-satellites repository")
-        if not os.path.exists(gr_sat_dir):
-            Repo.clone_from('https://github.com/daniestevez/gr-satellites', gr_sat_dir)
+        if not os.path.exists(self.gr_sat_dir):
+            Repo.clone_from('https://github.com/daniestevez/gr-satellites', self.gr_sat_dir)
         #else:
         #    git.cmd.Git(gr_sat_dir).pull()
         
         sat_data = {}
 
-        for root, directory, files in os.walk(gr_sat_dir + 'apps/'):
+        for root, directory, files in os.walk(self.apps_dir):
             for f in files:
                 if '.grc' in f:
                     sat_name = os.path.splitext(f)[0]
@@ -118,21 +153,24 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         
         #TODO: add local caching so we don't have to call get every time we execute script
         #Get satellite info from SatNOGS DB
-        satnogs_url = 'http://db.satnogs.org/'
+        # satnogs_url = 'http://db.satnogs.org/'
        
-        #Note becareful not to spam these requests to prevent IP from getting blocked
-        #satnogs_sats_json = requests.get(satnogs_url + 'api/satellites/?format=json')
-        #if satnogs_sats_json.status_code != 200:
-        #    print('Failed to retrieve satellite data from SatNOGS DB')
-        #    sys.exit()
+        # #Note becareful not to spam these requests to prevent IP from getting blocked
+        # satnogs_sats_json = requests.get(satnogs_url + 'api/satellites/?format=json')
+        # if satnogs_sats_json.status_code != 200:
+        #     print('Failed to retrieve satellite data from SatNOGS DB')
+        #     sys.exit()
        
-        #satnogs_transmitters_json = requests.get(satnogs_url + 'api/transmitters/?format=json')
-        #if satnogs_transmitters_json.status_code != 200:
-        #    print('Failed to retrieve transmitter data from SatNOGS DB')
-        #    sys.exit()
+        # satnogs_transmitters_json = requests.get(satnogs_url + 'api/transmitters/?format=json')
+        # if satnogs_transmitters_json.status_code != 200:
+        #     print('Failed to retrieve transmitter data from SatNOGS DB')
+        #     sys.exit()
 
-        with open('/home/andrew/Documents/classes/capstone/sandbox/satnogs_transmitters.json') as f:
+        self.pullFromServer()
+
+        with open(self.path_to_satnogs_filename) as f:
             data = json.load(f)
+
         for transmitter in data:
             norad_id = transmitter['norad_cat_id']
             trans_name = transmitter['description']
@@ -269,6 +307,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
       #  print('\nData will automatically be collected from', sched_sat, 'during the pass from:')
       #  print(t[pass_sched[pass_num][0]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST to', t[pass_sched[pass_num][1]].astimezone(tzone).strftime('%Y/%m/%d %H:%M:%S'), 'PST')
       #  print('\n')
+
 
 
 if __name__ == "__main__":
