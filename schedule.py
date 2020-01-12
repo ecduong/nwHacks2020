@@ -23,10 +23,6 @@ qtCreatorFile = "schedule.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 
-    
-
-
-
 
 class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -34,6 +30,17 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
         self.pushButton_2.clicked.connect(self.getParams)
+
+    def getAvailableSats(self):
+        date = self.scheduleDateEdit.date().toPyDate()
+        # Call Andrew's script
+        # Call populateTable when adding script to retrieve data
+
+    def populateTable(self, data):
+        self.availableSats.setRowCount(len(data))
+        for row in range(len(data)):
+            for column in range(7):
+                self.availableSats.setItem(row, column, QtWidgets.QTableWidgetItem(data[row][column]))
 
     def setup(self):
         #Create directory to host system documents
@@ -142,34 +149,15 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         #if not lng:
         lng = '-123.2460 E'
 
-
-        #Range of minutes to search for upcoming passes, automatically overflows into hours and days
-        #print('Please provide the starting date and time (in UTC)')
-        #year = input(' Year: ')
-        #month = input(' Month: ')
-        #day = input(' Day: ')
-        #hour = input(' hour: ')
-        #mins = input(' Length of time window to search for passes (minutes starting from the time entered above): ')
-        #print('\n')
-        dateStart = self.dateEdit.date().toPyDate()
-        dateEnd = self.dateEdit_2.date().toPyDate()
-        #print(dateStart)
-        #print(dateEnd)
-        hour = 12
-        mins = 120
-        #print(dateStart.year)
-        #print(dateEnd.year)
-
-        #sys.exit()
-
-        #year = int(year)
-        #month = int(month)
-        #day = int(day)
+        dateStart = self.scheduleDateEditStart.dateTime().toPyDateTime()
+        dateEnd = self.scheduleDateEditEnd.dateTime().toPyDateTime()
+        #mins = (dateEnd-dateStart).total_seconds()/60
+        
         year = int(dateStart.year)
         month = int(dateStart.month)
         day = int(dateStart.day)
-        hour = int(hour)
-        minutes = range(int(mins))
+        hour = int(dateStart.hour)
+        minutes = range(int((dateEnd-dateStart).total_seconds()/60))
 
         print(year)
         print(month)
